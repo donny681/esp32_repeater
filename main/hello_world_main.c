@@ -1,5 +1,5 @@
 /* Hello World Example
-
+,,,
  This example code is in the Public Domain (or CC0 licensed, at your option.)
 
  Unless required by applicable law or agreed to in writing, this
@@ -7,6 +7,7 @@
  CONDITIONS OF ANY KIND, either express or implied.
  */
 #include <stdio.h>
+#include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -18,7 +19,107 @@
 #include "esp_pm.h"
 #include "nvs_flash.h"
 #include "lwip/dns.h"
+#include "lwip/ip4_napt.h"
+#include "lwip/netif.h"
 static char *TAG = "main";
+static netif_input_fn orig_input_ap;
+static netif_linkoutput_fn orig_output_ap;
+
+/* Some stats */
+uint64_t Bytes_in, Bytes_out;
+uint32_t Packets_in, Packets_out;
+static void  patch_netif_ap(netif_input_fn ifn, netif_linkoutput_fn ofn, bool nat)
+{
+struct netif *nif;
+ip4_addr_t ap_ip;
+IP4_ADDR(&ap_ip,192,168,4,1);
+//	ap_ip = config.network_addr;
+//	ip4_addr4(&ap_ip) = 1;
+
+	for (nif = netif_list; nif != NULL && nif->ip_addr.u_addr.ip4.addr != ap_ip.addr; nif = nif->next);
+	if (nif == NULL) return;
+
+	nif->napt = nat?1:0;
+	if (nif->input != ifn) {
+	  orig_input_ap = nif->input;
+	  nif->input = ifn;
+	}
+	if (nif->linkoutput != ofn) {
+	  orig_output_ap = nif->linkoutput;
+	  nif->linkoutput = ofn;
+	}
+}
+
+
+static uint8_t columns = 0;
+void  my_input_ap (struct pbuf *p, struct netif *inp){
+
+    //os_printf("Got packet from STA\r\n");
+    Bytes_in += p->tot_len;
+    Packets_in++;
+
+#ifdef STATUS_LED
+    GPIO_OUTPUT_SET (LED_NO, 1);
+#endif
+
+#ifdef REMOTE_MONITORING
+    if (monitoring_on) {
+//       system_os_post(user_procTaskPrio, SIG_PACKET, 0 );
+       if (put_packet_to_ringbuf(p) != 0) {
+#ifdef DROP_PACKET_IF_NOT_RECORDED
+               pbuf_free(p);
+	       return;
+/*#else
+       	       os_printf("x");
+	       if (++columns > 40) {
+		  os_printf("\r\n");
+		  columns = 0;
+	       }
+*/
+#endif
+       }
+       if (!onitoring_send_ongoing)
+	       tcp_monitor_sent_cb(cur_mon_conn);
+    }
+#endif
+
+    orig_input_ap (p, inp);
+}
+
+void  my_output_ap (struct netif *outp, struct pbuf *p) {
+
+    //os_printf("Send packet to STA\r\n");
+    Bytes_out += p->tot_len;
+    Packets_out++;
+
+#ifdef STATUS_LED
+    GPIO_OUTPUT_SET (LED_NO, 0);
+#endif
+
+#ifdef REMOTE_MONITORING
+    if (monitoring_on) {
+//     system_os_post(user_procTaskPrio, SIG_PACKET, 0 );
+       if (put_packet_to_ringbuf(p) != 0) {
+#ifdef DROP_PACKET_IF_NOT_RECORDED
+               pbuf_free(p);
+	       return;
+/*#else
+       	       os_printf("x");
+	       if (++columns > 40) {
+		  os_printf("\r\n");
+		  columns = 0;
+	       }
+*/
+#endif
+       }
+       if (!monitoring_send_ongoing)
+	       tcp_monitor_sent_cb(cur_mon_conn);
+    }
+#endif
+
+    orig_output_ap (outp, p);
+}
+
 static ip4_addr_t my_ip;
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
 	ip_addr_t dns_ip;
@@ -37,8 +138,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 		;
 
 		dns_ip = dns_getserver(0);
-		dhcps_set_DNS(&dns_ip);
-//		 printf(("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR ",dns:" IPSTR "\n", IP2STR(&event->event_info.got_ip.ip_info.ip)), IP2STR(&event->event_info.got_ip.ip_info.netmask), IP2STR(&event->event_info.got_ip.ip_info.gw), IP2STR(&dns_ip));
+		dhcps_dns_setserver(&dns_ip);
 		printf("ip: %s ,mask: %s ,gw: %s ,dns: %s \n",
 				ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip),
 				ip4addr_ntoa(&event->event_info.got_ip.ip_info.netmask),
@@ -58,6 +158,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 				MAC2STR(event->event_info.sta_connected.mac),
 				event->event_info.sta_connected.aid)
 		;
+//		patch_netif_ap(my_input_ap, my_output_ap, true);
 		break;
 	case SYSTEM_EVENT_AP_STADISCONNECTED:
 		ESP_LOGI(TAG, "station:"MACSTR"leave,AID=%d\n",
