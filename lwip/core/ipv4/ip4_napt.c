@@ -39,7 +39,8 @@ int nr_active_napt_tcp = 0, nr_active_napt_udp = 0, nr_active_napt_icmp = 0;
 uint16_t ip_napt_max = 0;
 uint8_t ip_portmap_max = 0;
 
-void ip_napt_init(uint16_t max_nat, uint8_t max_portmap) {
+void ESP_IRAM_ATTR
+ip_napt_init(uint16_t max_nat, uint8_t max_portmap) {
 	u16_t i;
 
 	ip_napt_max = max_nat;
@@ -55,7 +56,8 @@ void ip_napt_init(uint16_t max_nat, uint8_t max_portmap) {
 	ip_napt_table[i].next = NO_IDX;
 }
 
-void ip_napt_enable(u32_t addr, int enable) {
+void ESP_IRAM_ATTR
+ip_napt_enable(u32_t addr, int enable) {
 	struct netif *netif;
 	for (netif = netif_list; netif; netif = netif->next) {
 		if (netif_is_up(netif) && !ip_addr_isany(&netif->ip_addr)
@@ -66,7 +68,8 @@ void ip_napt_enable(u32_t addr, int enable) {
 	}
 }
 
-void ip_napt_enable_no(u8_t number, int enable) {
+void ESP_IRAM_ATTR
+ip_napt_enable_no(u8_t number, int enable) {
 	struct netif *netif;
 	for (netif = netif_list; netif; netif = netif->next) {
 		if (netif->num == number) {
@@ -335,7 +338,7 @@ ip_napt_add(u8_t proto, u32_t src, u16_t sport, u32_t dest, u16_t dport)
   return 0;
 }
 
-u8_t
+u8_t ESP_IRAM_ATTR
 ip_portmap_add(u8_t proto, u32_t maddr, u16_t mport, u32_t daddr, u16_t dport)
 {
   mport = PP_HTONS(mport);
@@ -388,7 +391,7 @@ ip_portmap_find_dest(u8_t proto, u16_t dport, u32_t daddr)
   return NULL;
 }
 
-u8_t
+u8_t ESP_IRAM_ATTR
 ip_portmap_remove(u8_t proto, u16_t mport)
 {
   mport = PP_HTONS(mport);
@@ -460,7 +463,8 @@ ip_napt_modify_addr(struct ip_hdr *iphdr, ip4_addr_p_t *field, u32_t newval)
  * @param iphdr the IP header of the input packet
  * @param inp the netif on which this packet was received
  */
-void ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
+void ESP_IRAM_ATTR
+ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
 {
   struct portmap_table *m;
   struct napt_table *t;
@@ -561,7 +565,7 @@ void ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
  * @param outp the netif on which this packet will be sent
  * @return ERR_OK if packet should be sent, or ERR_RTE if it should be dropped
  */
- err_t
+err_t ESP_IRAM_ATTR
 ip_napt_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp, struct netif *outp)
 {
   if (!inp->napt)
@@ -669,7 +673,8 @@ ip_napt_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp, struct 
 //#if NAPT_DEBUG
 /* Print NAPT table using LWIP_DEBUGF
  */
-void napt_debug_print() {
+void ESP_IRAM_ATTR
+napt_debug_print() {
 	int i, next;
 	LWIP_DEBUGF(NAPT_DEBUG, ("NAPT table:\n"));
 	LWIP_DEBUGF(NAPT_DEBUG,

@@ -89,7 +89,7 @@ extern struct portmap_table *ip_portmap_table;
  * @param max_nat max number of enties in the NAPT table (use IP_NAPT_MAX if in doubt)
  * @param max_portmap max number of enties in the NAPT table (use IP_PORTMAP_MAX if in doubt)
  */
-void
+void ESP_IRAM_ATTR
 ip_napt_init(uint16_t max_nat, uint8_t max_portmap);
 
 
@@ -99,7 +99,7 @@ ip_napt_init(uint16_t max_nat, uint8_t max_portmap);
  * @param addr ip address of the interface
  * @param enable non-zero to enable NAPT, or 0 to disable.
  */
-void
+void ESP_IRAM_ATTR
 ip_napt_enable(u32_t addr, int enable);
 
 
@@ -109,7 +109,7 @@ ip_napt_enable(u32_t addr, int enable);
  * @param netif number of the interface
  * @param enable non-zero to enable NAPT, or 0 to disable.
  */
-void
+void ESP_IRAM_ATTR
 ip_napt_enable_no(u8_t number, int enable);
 
 
@@ -124,7 +124,7 @@ ip_napt_enable_no(u8_t number, int enable);
  * @param daddr destination ip address
  * @param dport destination port, in host byte order.
  */
-u8_t
+u8_t ESP_IRAM_ATTR
 ip_portmap_add(u8_t proto, u32_t maddr, u16_t mport, u32_t daddr, u16_t dport);
 
 
@@ -134,7 +134,7 @@ ip_portmap_add(u8_t proto, u32_t maddr, u16_t mport, u32_t daddr, u16_t dport);
  * @param proto target protocol
  * @param maddr ip address of the external interface
  */
-u8_t
+u8_t ESP_IRAM_ATTR
 ip_portmap_remove(u8_t proto, u16_t mport);
 
 /**
@@ -147,21 +147,22 @@ ip_portmap_remove(u8_t proto, u16_t mport);
  * @param outp the netif on which this packet will be sent
  * @return ERR_OK if packet should be sent, or ERR_RTE if it should be dropped
  */
- err_t
+err_t ESP_IRAM_ATTR
 ip_napt_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp, struct netif *outp);
 
 
- /**
-  * NAPT for an input packet. It checks weather the destination is on NAPT
-  * table and modifythe packet destination address and port if needed.
-  *
-  * @param p the packet to forward (p->payload points to IP header)
-  * @param iphdr the IP header of the input packet
-  * @param inp the netif on which this packet was received
-  */
- void ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp);
+/**
+ * NAPT for an input packet. It checks weather the destination is on NAPT
+ * table and modifythe packet destination address and port if needed.
+ *
+ * @param p the packet to forward (p->payload points to IP header)
+ * @param iphdr the IP header of the input packet
+ * @param inp the netif on which this packet was received
+ */
+void ESP_IRAM_ATTR
+ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp);
 
-void
+void ESP_IRAM_ATTR
 napt_debug_print();
 
 #endif /* IP_NAPT */
