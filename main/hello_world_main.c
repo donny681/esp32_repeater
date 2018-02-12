@@ -28,7 +28,7 @@ static netif_linkoutput_fn orig_output_ap;
 /* Some stats */
 uint64_t Bytes_in, Bytes_out;
 uint32_t Packets_in, Packets_out;
-static void  patch_netif_ap(netif_input_fn ifn, netif_linkoutput_fn ofn, bool nat)
+static void  patch_netif_ap(/*netif_input_fn ifn, netif_linkoutput_fn ofn,*/ bool nat)
 {
 struct netif *nif;
 ip4_addr_t ap_ip;
@@ -40,14 +40,14 @@ IP4_ADDR(&ap_ip,192,168,4,1);
 	if (nif == NULL) return;
 
 	nif->napt = nat?1:0;
-	if (nif->input != ifn) {
+/*	if (nif->input != ifn) {
 	  orig_input_ap = nif->input;
 	  nif->input = ifn;
 	}
 	if (nif->linkoutput != ofn) {
 	  orig_output_ap = nif->linkoutput;
 	  nif->linkoutput = ofn;
-	}
+	}*/
 }
 
 
@@ -158,7 +158,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 				MAC2STR(event->event_info.sta_connected.mac),
 				event->event_info.sta_connected.aid)
 		;
-//		patch_netif_ap(my_input_ap, my_output_ap, true);
+		patch_netif_ap(/*my_input_ap, my_output_ap,*/ true);
 		break;
 	case SYSTEM_EVENT_AP_STADISCONNECTED:
 		ESP_LOGI(TAG, "station:"MACSTR"leave,AID=%d\n",

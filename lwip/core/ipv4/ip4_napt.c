@@ -24,7 +24,7 @@
 #if IP_NAPT
 
 #ifndef NAPT_DEBUG
-#define NAPT_DEBUG      LWIP_DBG_ON
+#define NAPT_DEBUG      LWIP_DBG_OFF
 #endif
 
 #define NO_IDX ((u16_t)-1)
