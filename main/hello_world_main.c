@@ -24,12 +24,10 @@
 static char *TAG = "main";
 static netif_input_fn orig_input_ap;
 static netif_linkoutput_fn orig_output_ap;
-//#define REMOTE_MONITORING
+
 /* Some stats */
 uint64_t Bytes_in, Bytes_out;
 uint32_t Packets_in, Packets_out;
-
-
 static void  patch_netif_ap(netif_input_fn ifn, netif_linkoutput_fn ofn, bool nat)
 {
 struct netif *nif;
@@ -53,10 +51,6 @@ IP4_ADDR(&ap_ip,192,168,4,1);
 }
 
 
-
-
-
-
 static uint8_t columns = 0;
 void  my_input_ap (struct pbuf *p, struct netif *inp){
 
@@ -64,6 +58,9 @@ void  my_input_ap (struct pbuf *p, struct netif *inp){
     Bytes_in += p->tot_len;
     Packets_in++;
 
+#ifdef STATUS_LED
+    GPIO_OUTPUT_SET (LED_NO, 1);
+#endif
 
 #ifdef REMOTE_MONITORING
     if (monitoring_on) {
@@ -81,7 +78,7 @@ void  my_input_ap (struct pbuf *p, struct netif *inp){
 */
 #endif
        }
-       if (!monitoring_send_ongoing)
+       if (!onitoring_send_ongoing)
 	       tcp_monitor_sent_cb(cur_mon_conn);
     }
 #endif
@@ -123,8 +120,6 @@ void  my_output_ap (struct netif *outp, struct pbuf *p) {
     orig_output_ap (outp, p);
 }
 
-#define IP_PROTO_TCP 6
-#define IP_PROTO_UDP 17
 static ip4_addr_t my_ip;
 static esp_err_t event_handler(void *ctx, system_event_t *event) {
 	ip_addr_t dns_ip;
@@ -150,10 +145,6 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 				ip4addr_ntoa(&event->event_info.got_ip.ip_info.gw),
 				ip4addr_ntoa(&dns_ip));
 		my_ip = event->event_info.got_ip.ip_info.ip;
-//		ip4_addr_t ap_ip;
-//		IP4_ADDR(&ap_ip,192,168,4,1);
-//		ip_napt_enable(ap_ip.addr,1);
-//		ip_portmap_add(IP_PROTO_TCP,ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip),8080,ap_ip.addr,80);
 		// Update any predefined portmaps to the new IP addr
 		for (int i = 0; i < IP_PORTMAP_MAX; i++) {
 			if (ip_portmap_table[i].valid) {
@@ -167,7 +158,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 				MAC2STR(event->event_info.sta_connected.mac),
 				event->event_info.sta_connected.aid)
 		;
-		patch_netif_ap(my_input_ap, my_output_ap, true);
+//		patch_netif_ap(my_input_ap, my_output_ap, true);
 		break;
 	case SYSTEM_EVENT_AP_STADISCONNECTED:
 		ESP_LOGI(TAG, "station:"MACSTR"leave,AID=%d\n",
@@ -189,7 +180,7 @@ static void wifi_init(void) {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT()
 	;
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-	wifi_config_t sta_wifi_config = { .sta = { .ssid = "ANDROID", .password =
+	wifi_config_t sta_wifi_config = { .sta = { .ssid = "test", .password =
 			"wifiwifi", }, };
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &sta_wifi_config));
