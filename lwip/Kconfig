@@ -73,6 +73,28 @@ config LWIP_DHCP_MAX_NTP_SERVERS
         First argument of sntp_setserver/sntp_setservername functions
         is limited to this value.
 
+config LWIP_IP_FORWARD
+    bool "Enables the ability to forward IP packets across network interfaces."
+    default n
+    help
+        If you are going to run lwIP on a device with only one network interface,
+        define this to 0.
+
+config LWIP_IP_NAPT
+    bool "Enable Network Address Port Translation(NAPT)"
+    default n
+    depends on LWIP_IP_FORWARD
+    help
+        Enables the ability to do Network Address Port Translation (NAPT)
+        on forwarded packets. This only makes sense with IP_FORWARD==1.
+
+config LWIP_IP_NAPT_DYNAMIC
+    bool "Enable saves the memory for the NAPT tables if not required."
+    default n
+    depends on LWIP_IP_NAPT
+    help
+        If NAPT is used, ip_napt_init() has to be called explicitly once.
+
 config LWIP_IP_FRAG
     bool "Enable fragment outgoing IP packets"
     default n

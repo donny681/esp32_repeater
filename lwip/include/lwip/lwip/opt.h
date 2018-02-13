@@ -555,7 +555,7 @@
  * interface, define this to 0.
  */
 #ifndef IP_FORWARD
-#define IP_FORWARD                      1
+#define IP_FORWARD                      0
 #endif
 
 /**
@@ -564,7 +564,7 @@
  * only one network interface, define this to 0.
  */
 #ifndef IP_NAPT
-#define IP_NAPT                         1
+#define IP_NAPT                         0
 #endif
 
 /**

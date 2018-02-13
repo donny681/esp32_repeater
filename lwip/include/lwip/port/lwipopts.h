@@ -153,6 +153,25 @@
    --------------------------------
 */
 /**
+ * IP_FORWARD==1: Enables the ability to forward IP packets across network
+ * interfaces. If you are going to run lwIP on a device with only one network
+ * interface, define this to 0.
+ */
+#define IP_FORWARD                      CONFIG_LWIP_IP_FORWARD
+
+/**
+ * IP_NAPT==1: Enables the ability to do Network Address Port Translation (NAPT)
+ * on forwarded packets. This only makes sense with IP_FORWARD==1.
+ */
+#define IP_NAPT                         CONFIG_LWIP_IP_NAPT
+
+/**
+ * IP_NAPT_DYNAMIC==1: Saves the memory for the NAPT tables if not required.
+ * If NAPT is used, ip_napt_init() has to be called explicitly once.
+ */
+#define IP_NAPT_DYNAMIC                 CONFIG_LWIP_IP_NAPT_DYNAMIC
+
+/**
  * IP_REASSEMBLY==1: Reassemble incoming fragmented IP packets. Note that
  * this option does not affect outgoing packet sizes, which can be controlled
  * via IP_FRAG.
