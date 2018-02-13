@@ -36,7 +36,8 @@ uint16_t ip_napt_max = 0;
 uint8_t ip_portmap_max = 0;
 
 void ESP_IRAM_ATTR
-ip_napt_init(uint16_t max_nat, uint8_t max_portmap) {
+ip_napt_init(uint16_t max_nat, uint8_t max_portmap)
+{
   u16_t i;
 
   ip_napt_max = max_nat;
@@ -53,7 +54,8 @@ ip_napt_init(uint16_t max_nat, uint8_t max_portmap) {
 }
 
 void ESP_IRAM_ATTR
-ip_napt_enable(u32_t addr, int enable) {
+ip_napt_enable(u32_t addr, int enable)
+{
   struct netif *netif;
   for (netif = netif_list; netif; netif = netif->next) {
     if (netif_is_up(netif) && !ip_addr_isany(&netif->ip_addr)
@@ -65,7 +67,8 @@ ip_napt_enable(u32_t addr, int enable) {
 }
 
 void ESP_IRAM_ATTR
-ip_napt_enable_no(u8_t number, int enable) {
+ip_napt_enable_no(u8_t number, int enable)
+{
   struct netif *netif;
   for (netif = netif_list; netif; netif = netif->next) {
     if (netif->num == number) {
@@ -75,13 +78,13 @@ ip_napt_enable_no(u8_t number, int enable) {
   }
 }
 
-void checksumadjust(unsigned char *chksum, unsigned char *optr, int olen,
-    unsigned char *nptr, int nlen)
-/* assuming: unsigned char is 8 bits, long is 32 bits.
- - chksum points to the chksum in the packet
- - optr points to the old data in the packet
- - nptr points to the new data in the packet
- */
+void ESP_IRAM_ATTR checksumadjust(unsigned char *chksum, unsigned char *optr,
+   int olen, unsigned char *nptr, int nlen)
+   /* assuming: unsigned char is 8 bits, long is 32 bits.
+     - chksum points to the chksum in the packet
+     - optr points to the old data in the packet
+     - nptr points to the new data in the packet
+   */
 {
   long x, old, new;
   x = chksum[0] * 256 + chksum[1];
@@ -112,7 +115,9 @@ void checksumadjust(unsigned char *chksum, unsigned char *optr, int olen,
 }
 
 /* t must be indexed by napt_free */
-static void ip_napt_insert(struct napt_table *t) {
+static void ESP_IRAM_ATTR
+ip_napt_insert(struct napt_table *t)
+{
   u16_t ti = t - ip_napt_table;
   if (ti != napt_free)
     *((int*) 1) = 1; //DEBUG
@@ -140,7 +145,9 @@ static void ip_napt_insert(struct napt_table *t) {
 //os_printf("T: %d, U: %d, I: %d\r\n", nr_active_napt_tcp, nr_active_napt_udp, nr_active_napt_icmp);
 }
 
-static void ip_napt_free(struct napt_table *t) {
+static void ESP_IRAM_ATTR
+ip_napt_free(struct napt_table *t)
+{
   u16_t ti = t - ip_napt_table;
   if (ti == napt_list)
     napt_list = t->next;
@@ -170,9 +177,10 @@ static void ip_napt_free(struct napt_table *t) {
   napt_debug_print();
 }
 
-
 #if LWIP_TCP
-static u8_t ip_napt_find_port(u8_t proto, u16_t port) {
+static u8_t ESP_IRAM_ATTR
+ip_napt_find_port(u8_t proto, u16_t port)
+{
   int i, next;
   for (i = napt_list; i != NO_IDX; i = next) {
     struct napt_table *t = &ip_napt_table[i];
@@ -183,10 +191,12 @@ static u8_t ip_napt_find_port(u8_t proto, u16_t port) {
   return 0;
 }
 
-static struct portmap_table *
+static struct portmap_table * ESP_IRAM_ATTR
 ip_portmap_find(u8_t proto, u16_t mport);
 
-static u8_t tcp_listening(u16_t port) {
+static u8_t ESP_IRAM_ATTR
+tcp_listening(u16_t port)
+{
   struct tcp_pcb_listen *t;
   for (t = tcp_listen_pcbs.listen_pcbs; t; t = t->next)
     if (t->local_port == port)
@@ -195,11 +205,12 @@ static u8_t tcp_listening(u16_t port) {
     return 1;
   return 0;
 }
-
-#endif
+#endif // LWIP_TCP
 
 #if LWIP_UDP
-static u8_t udp_listening(u16_t port) {
+static u8_t ESP_IRAM_ATTR
+udp_listening(u16_t port)
+{
   struct udp_pcb *pcb;
   for (pcb = udp_pcbs; pcb; pcb = pcb->next)
     if (pcb->local_port == port)
@@ -210,7 +221,9 @@ static u8_t udp_listening(u16_t port) {
 }
 #endif // LWIP_UDP
 
-static u16_t ip_napt_new_port(u8_t proto, u16_t port) {
+static u16_t ESP_IRAM_ATTR
+ip_napt_new_port(u8_t proto, u16_t port)
+{
   if (PP_NTOHS(port) >= IP_NAPT_PORT_RANGE_START
       && PP_NTOHS(port) <= IP_NAPT_PORT_RANGE_END)
     if (!ip_napt_find_port(proto, port) && !tcp_listening(port))
@@ -234,8 +247,9 @@ static u16_t ip_napt_new_port(u8_t proto, u16_t port) {
   }
 }
 
-static struct napt_table*
-ip_napt_find(u8_t proto, u32_t addr, u16_t port, u16_t mport, u8_t dest) {
+static struct napt_table* ESP_IRAM_ATTR
+ip_napt_find(u8_t proto, u32_t addr, u16_t port, u16_t mport, u8_t dest)
+{
   u16_t i, next;
   struct napt_table *t;
 
@@ -287,7 +301,7 @@ ip_napt_find(u8_t proto, u32_t addr, u16_t port, u16_t mport, u8_t dest) {
   return NULL;
 }
 
-static u16_t
+static u16_t ESP_IRAM_ATTR
 ip_napt_add(u8_t proto, u32_t src, u16_t sport, u32_t dest, u16_t dport)
 {
   struct napt_table *t = ip_napt_find(proto, src, sport, 0, 0);
@@ -359,7 +373,7 @@ ip_portmap_add(u8_t proto, u32_t maddr, u16_t mport, u32_t daddr, u16_t dport)
   return 0;
 }
 
-static struct portmap_table *
+static struct portmap_table * ESP_IRAM_ATTR
 ip_portmap_find(u8_t proto, u16_t mport)
 {
   int i;
@@ -373,7 +387,7 @@ ip_portmap_find(u8_t proto, u16_t mport)
   return NULL;
 }
 
-static struct portmap_table *
+static struct portmap_table * ESP_IRAM_ATTR
 ip_portmap_find_dest(u8_t proto, u16_t dport, u32_t daddr)
 {
   int i;
@@ -402,7 +416,7 @@ ip_portmap_remove(u8_t proto, u16_t mport)
 }
 
 #if LWIP_TCP
-void
+void ESP_IRAM_ATTR
 ip_napt_modify_port_tcp(struct tcp_hdr *tcphdr, u8_t dest, u16_t newval)
 {
   if (dest) {
@@ -415,16 +429,15 @@ ip_napt_modify_port_tcp(struct tcp_hdr *tcphdr, u8_t dest, u16_t newval)
 }
 
 
-void
+void ESP_IRAM_ATTR
 ip_napt_modify_addr_tcp(struct tcp_hdr *tcphdr, ip4_addr_p_t *oldval, u32_t newval)
 {
   checksumadjust((unsigned char *)&tcphdr->chksum, (unsigned char *)&oldval->addr, 4, (unsigned char *)&newval, 4);
 }
 #endif // LWIP_TCP
 
-
 #if LWIP_UDP
-void
+void ESP_IRAM_ATTR
 ip_napt_modify_port_udp(struct udp_hdr *udphdr, u8_t dest, u16_t newval)
 {
   if (dest) {
@@ -436,20 +449,20 @@ ip_napt_modify_port_udp(struct udp_hdr *udphdr, u8_t dest, u16_t newval)
   }
 }
 
-void
+void ESP_IRAM_ATTR
 ip_napt_modify_addr_udp(struct udp_hdr *udphdr, ip4_addr_p_t *oldval, u32_t newval)
 {
   checksumadjust((unsigned char *)&udphdr->chksum, (unsigned char *)&oldval->addr, 4, (unsigned char *)&newval, 4);
 }
 #endif // LWIP_UDP
 
-
-void
+void ESP_IRAM_ATTR
 ip_napt_modify_addr(struct ip_hdr *iphdr, ip4_addr_p_t *field, u32_t newval)
 {
   checksumadjust((unsigned char *)&IPH_CHKSUM(iphdr), (unsigned char *)&field->addr, 4, (unsigned char *)&newval, 4);
   field->addr = newval;
 }
+
 
 /**
  * NAPT for an input packet. It checks weather the destination is on NAPT
