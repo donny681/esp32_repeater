@@ -1,6 +1,6 @@
 #ifndef __LWIP_NAPT_H__
 #define __LWIP_NAPT_H__
-//#include "lwip/lwipopts.h"
+
 #include "lwip/opt.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -10,9 +10,6 @@
 #include "lwip/pbuf.h"
 #include "spiffs_config.h"
 
-//#include "common.h"
-
-//#define LWIP_TCP 1
 #ifdef __cplusplus
 extern "C" {
 #endif
