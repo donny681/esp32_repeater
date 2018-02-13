@@ -56,7 +56,6 @@
 #include "lwip/dhcp.h"
 #include "lwip/autoip.h"
 #include "lwip/stats.h"
-#include "lwip/stats.h"
 #include "lwip/ip4_napt.h"
 
 #include <string.h>
@@ -502,12 +501,8 @@ ip4_input(struct pbuf *p, struct netif *inp)
 #if IP_NAPT
   /* for unicast packet, check NAPT table and modify dest if needed */
   if (!inp->napt && nat_ip_addr_cmp(&iphdr->dest, &(inp->ip_addr.u_addr.ip4)))
-    ip_napt_recv(p, iphdr, &netif);//netuf no used
+    ip_napt_recv(p, iphdr, inp);//netif no used
 #endif
-
-  /* Trim pbuf. This should have been done at the netif layer,
-   * but we'll do it anyway just to be sure that its done. */
-  pbuf_realloc(p, iphdr_len);
 
   /* copy IP addresses to aligned ip_addr_t */
   ip_addr_copy_from_ip4(ip_data.current_iphdr_dest, iphdr->dest);
