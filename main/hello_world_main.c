@@ -21,6 +21,7 @@
 #include "lwip/dns.h"
 #include "lwip/ip4_napt.h"
 #include "lwip/netif.h"
+#include "apps/dhcpserver_options.h"
 static char *TAG = "main";
 static netif_input_fn orig_input_ap;
 static netif_linkoutput_fn orig_output_ap;
@@ -137,6 +138,8 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 				ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip))
 		;
 
+		dhcps_offer_t opt_info = OFFER_DNS;
+		dhcps_set_option_info(DOMAIN_NAME_SERVER, &opt_info, sizeof(opt_info));
 		dns_ip = dns_getserver(0);
 		dhcps_dns_setserver(&dns_ip);
 		printf("ip: %s ,mask: %s ,gw: %s ,dns: %s \n",
