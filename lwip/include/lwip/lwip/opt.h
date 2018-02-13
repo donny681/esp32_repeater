@@ -559,12 +559,12 @@
 #endif
 
 /**
- * IP_NAT==1: Enables Network address translation for packet routing between
+ * IP_NAPT==1: Enables Network address translation for packet routing between
  * local and external interface. If you are going to run lwIP on a device with
  * only one network interface, define this to 0.
  */
-#if !defined IP_NAT
-#define IP_NAT                          1
+#ifndef IP_NAPT
+#define IP_NAPT                         1
 #endif
 
 /**
@@ -593,8 +593,8 @@
 #define IP_REASSEMBLY                   0
 #undef IP_FRAG
 #define IP_FRAG                         0
-#undef IP_NAT
-#define IP_NAT                          0
+#undef IP_NAPT
+#define IP_NAPT                         0
 #endif /* !LWIP_IPV4 */
 
 /**
@@ -3020,6 +3020,13 @@
  */
 #ifndef IP6_DEBUG
 #define IP6_DEBUG                       LWIP_DBG_OFF
+#endif
+
+/**
+ * NAPT_DEBUG: Enable debugging for NAPT.
+ */
+#ifndef NAPT_DEBUG
+#define NAPT_DEBUG                      LWIP_DBG_OFF
 #endif
 
 /*

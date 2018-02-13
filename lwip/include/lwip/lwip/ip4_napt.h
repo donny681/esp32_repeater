@@ -162,8 +162,11 @@ ip_napt_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp, struct 
 void ESP_IRAM_ATTR
 ip_napt_recv(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp);
 
-void ESP_IRAM_ATTR
-napt_debug_print();
+#if NAPT_DEBUG
+void ESP_IRAM_ATTR napt_debug_print();
+#else
+#define napt_debug_print(p)
+#endif /* NAPT_DEBUG */
 
 #endif /* IP_NAPT */
 #endif /* IP_FORWARD */

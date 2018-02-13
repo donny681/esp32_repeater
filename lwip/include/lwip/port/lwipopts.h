@@ -42,10 +42,6 @@
 #include "esp_system.h"
 #include "sdkconfig.h"
 
-#define IP_FORWARD 1
-#define IP_NAPT 1
-#define LWIP_UDP 1
-#define LWIP_TCP 1
 /* Enable all Espressif-only options */
 
 /*
