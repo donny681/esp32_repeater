@@ -76,6 +76,7 @@ config LWIP_DHCP_MAX_NTP_SERVERS
 config LWIP_IP_FORWARD
     bool "Enables the ability to forward IP packets across network interfaces."
     default n
+    depends on L2_TO_L3_COPY
     help
         If you are going to run lwIP on a device with only one network interface,
         define this to 0.
