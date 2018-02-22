@@ -56,8 +56,8 @@
 #include "lwip/dhcp.h"
 #include "lwip/autoip.h"
 #include "lwip/stats.h"
-#include "lwip/stats.h"
 #include "lwip/ip4_napt.h"
+
 #include <string.h>
 
 /** Set this to 0 in the rare case of wanting to call an extra function to
@@ -137,7 +137,7 @@ bool ip4_netif_exist(const ip4_addr_t *src, const ip4_addr_t *dest)
  * Source based IPv4 routing hook function. This function works only
  * when destination IP is broadcast IP.
  */
-struct netif *
+struct netif * ESP_IRAM_ATTR
 ip4_route_src_hook(const ip4_addr_t *dest, const ip4_addr_t *src)
 {
   struct netif *netif = NULL;
@@ -163,7 +163,7 @@ ip4_route_src_hook(const ip4_addr_t *dest, const ip4_addr_t *src)
  * Source based IPv4 routing must be fully implemented in
  * LWIP_HOOK_IP4_ROUTE_SRC(). This function only provides the parameters.
  */
-struct netif *
+struct netif * ESP_IRAM_ATTR
 ip4_route_src(const ip4_addr_t *dest, const ip4_addr_t *src)
 {
   if (src != NULL) {
@@ -190,7 +190,7 @@ ip4_route_src(const ip4_addr_t *dest, const ip4_addr_t *src)
  * @param dest the destination IP address for which to find the route
  * @return the netif on which to send to reach dest
  */
-struct netif *
+struct netif * ESP_IRAM_ATTR
 ip4_route(const ip4_addr_t *dest)
 {
   struct netif *netif;
@@ -416,7 +416,7 @@ return_noroute:
  * @return ERR_OK if the packet was processed (could return ERR_* if it wasn't
  *         processed, but currently always returns ERR_OK)
  */
-err_t
+err_t ESP_IRAM_ATTR
 ip4_input(struct pbuf *p, struct netif *inp)
 {
   struct ip_hdr *iphdr;
@@ -501,12 +501,8 @@ ip4_input(struct pbuf *p, struct netif *inp)
 #if IP_NAPT
   /* for unicast packet, check NAPT table and modify dest if needed */
   if (!inp->napt && nat_ip_addr_cmp(&iphdr->dest, &(inp->ip_addr.u_addr.ip4)))
-    ip_napt_recv(p, iphdr, &netif);//netuf no used
+    ip_napt_recv(p, iphdr, inp);//netif no used
 #endif
-
-  /* Trim pbuf. This should have been done at the netif layer,
-   * but we'll do it anyway just to be sure that its done. */
-  pbuf_realloc(p, iphdr_len);
 
   /* copy IP addresses to aligned ip_addr_t */
   ip_addr_copy_from_ip4(ip_data.current_iphdr_dest, iphdr->dest);
@@ -834,7 +830,7 @@ ip4_output_if_opt(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
  * Same as ip_output_if() but 'src' address is not replaced by netif address
  * when it is 'any'.
  */
-err_t
+err_t ESP_IRAM_ATTR
 ip4_output_if_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
              u8_t ttl, u8_t tos,
              u8_t proto, struct netif *netif)
@@ -847,7 +843,7 @@ ip4_output_if_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
  * Same as ip_output_if_opt() but 'src' address is not replaced by netif address
  * when it is 'any'.
  */
-err_t
+err_t ESP_IRAM_ATTR
 ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
        u8_t ttl, u8_t tos, u8_t proto, struct netif *netif, void *ip_options,
        u16_t optlen)
