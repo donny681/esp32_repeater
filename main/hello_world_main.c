@@ -21,6 +21,7 @@
 #include "lwip/dns.h"
 #include "lwip/ip4_napt.h"
 #include "lwip/netif.h"
+#include "webserver.h"
 #include "apps/dhcpserver_options.h"
 static char *TAG = "main";
 static netif_input_fn orig_input_ap;
@@ -183,7 +184,7 @@ static void wifi_init(void) {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT()
 	;
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-	wifi_config_t sta_wifi_config = { .sta = { .ssid = "test", .password =
+	wifi_config_t sta_wifi_config = { .sta = { .ssid = "ANDROID", .password =
 			"wifiwifi", }, };
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &sta_wifi_config));
@@ -206,8 +207,8 @@ void app_main() {
 	ESP_ERROR_CHECK(ret);
 	printf("Hello world!\n");
 	wifi_init();
+	xTaskCreate(&webserver_task,"webserver_task",4096,NULL,3,NULL);
 	while (1) {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
-
 }
